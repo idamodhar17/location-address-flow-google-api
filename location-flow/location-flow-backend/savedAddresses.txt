@@ -1,2 +1,5 @@
 {"houseNumber":"328","area":"karad","category":"Office","address":"204, Mote Mangal Karyalay Rd, Bhavani Peth, Shobhapur, Kasba Peth, Pune, Maharashtra 411011, India"}
 {"houseNumber":"328","area":"Kumbhar Wada","category":"Home","address":"GVF6+5MX, Gandhinagar, Mangalwar Peth, Kasba Peth, Pune, Maharashtra 411011, India"}
+{"houseNumber":"328","area":"Kumbhar Wada","category":"Home","address":"204, Mote Mangal Karyalay Rd, Bhavani Peth, Shobhapur, Kasba Peth, Pune, Maharashtra 411011, India"}
+{"houseNumber":"328","area":"Rukadi","category":"Friends & Family","address":"85, Apte Ghat, Shaniwar Peth, Pune, Maharashtra 411030, India"}
+{"houseNumber":"328","area":"Subhash Chowk","category":"Home","address":"VG2J+C6G, Azad Nagar, Parli Vaijnath, Maharashtra 431515, India"}

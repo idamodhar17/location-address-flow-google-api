@@ -1,0 +1,2 @@
+{"houseNumber":"328","area":"karad","category":"Office","address":"204, Mote Mangal Karyalay Rd, Bhavani Peth, Shobhapur, Kasba Peth, Pune, Maharashtra 411011, India"}
+{"houseNumber":"328","area":"Kumbhar Wada","category":"Home","address":"GVF6+5MX, Gandhinagar, Mangalwar Peth, Kasba Peth, Pune, Maharashtra 411011, India"}

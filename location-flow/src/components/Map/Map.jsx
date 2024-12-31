@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { GoogleMap } from "@react-google-maps/api";
 import axios from "axios";
 import Autocomplete from "react-google-autocomplete";
-import LocationPopup from "./LocationPopUp";
+import LocationPopup from "../LocationPopUp/LocationPopUp";
 
 const containerStyle = {
   width: "100%",
-  height: "400px",
-  maxWidth: "800px",
+  height: "300px",
+  maxWidth: "100%",
   margin: "0 auto",
 };
 
@@ -16,7 +16,7 @@ const defaultCenter = {
   lng: 72.8777,
 };
 
-const Map = () => {
+const Map = ({ onAddressSelect }) => {
   const [currentPosition, setCurrentPosition] = useState(defaultCenter);
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -35,9 +35,7 @@ const Map = () => {
     const script = document.createElement("script");
     script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
     script.async = true;
-    script.onload = () => {
-      setIsApiLoaded(true);
-    };
+    script.onload = () => setIsApiLoaded(true);
     document.head.appendChild(script);
   };
 
@@ -46,27 +44,21 @@ const Map = () => {
     getCurrentLocation();
   };
 
-  const handleManualEntry = () => {
-    setIsPopupOpen(false);
-    console.log("Search Location Manually clicked");
-  };
-
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          console.log("Current Location:", latitude, longitude);
-          setCurrentPosition({ lat: latitude, lng: longitude });
+          const newPosition = { lat: latitude, lng: longitude };
+          setCurrentPosition(newPosition);
+          if (markerRef.current) {
+            markerRef.current.setPosition(newPosition);
+          }
           getAddressFromLatLng(latitude, longitude);
         },
         (error) => {
           console.error("Error getting location:", error);
-          if (error.code === error.PERMISSION_DENIED) {
-            alert("Location access denied. Please enable location services.");
-          } else {
-            alert("Could not fetch location. Please try again.");
-          }
+          alert("Could not fetch location. Please try again.");
         }
       );
     } else {
@@ -77,16 +69,17 @@ const Map = () => {
   const getAddressFromLatLng = async (lat, lng) => {
     setIsLoading(true);
     try {
-      const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`
-      );
-      const formattedAddress =
-        response.data.results.length > 0
-          ? response.data.results[0].formatted_address
-          : "Address not found";
-      setAddress(formattedAddress);
+      const response = await axios.get("http://localhost:5000/api/geocode", {
+        params: { lat, lng },
+      });
+      if (response.data.address) {
+        setAddress(response.data.address);
+        onAddressSelect(response.data.address);
+      } else {
+        setAddress("Address not found.");
+      }
     } catch (error) {
-      console.error("Error fetching address: ", error);
+      console.error("Error fetching address:", error.response?.data || error.message);
       setAddress("Error fetching address.");
     } finally {
       setIsLoading(false);
@@ -97,13 +90,19 @@ const Map = () => {
     const location = place.geometry.location;
     const lat = location.lat();
     const lng = location.lng();
-    setCurrentPosition({ lat, lng });
+    const newPosition = { lat, lng };
+    setCurrentPosition(newPosition);
+    if (markerRef.current) {
+      markerRef.current.setPosition(newPosition);
+    }
+    getAddressFromLatLng(lat, lng);
   };
 
   const handleMarkerDragEnd = () => {
     const lat = markerRef.current.getPosition().lat();
     const lng = markerRef.current.getPosition().lng();
-    setCurrentPosition({ lat, lng });
+    const newPosition = { lat, lng };
+    setCurrentPosition(newPosition);
     getAddressFromLatLng(lat, lng);
   };
 
@@ -114,9 +113,7 @@ const Map = () => {
       map: map,
       draggable: true,
     });
-
     markerRef.current = marker;
-
     google.maps.event.addListener(marker, "dragend", handleMarkerDragEnd);
   };
 
@@ -125,7 +122,7 @@ const Map = () => {
       {isPopupOpen && (
         <LocationPopup
           onEnableLocation={handleEnableLocation}
-          onManualEntry={handleManualEntry}
+          onManualEntry={() => setIsPopupOpen(false)}
         />
       )}
       {isApiLoaded && (
@@ -135,10 +132,14 @@ const Map = () => {
           types={["geocode"]}
           placeholder="Search for an address"
           style={{
+            margin: "10px",
             width: "100%",
+            maxWidth: "500px",
             padding: "10px",
-            borderRadius: "5px",
+            borderRadius: "20px",
             border: "1px solid #ccc",
+            marginBottom: "10px",
+            alignSelf: "center",
           }}
         />
       )}
@@ -151,7 +152,12 @@ const Map = () => {
             onClick={(event) => {
               const lat = event.latLng.lat();
               const lng = event.latLng.lng();
-              setCurrentPosition({ lat, lng });
+              const newPosition = { lat, lng };
+              setCurrentPosition(newPosition);
+              if (markerRef.current) {
+                markerRef.current.setPosition(newPosition);
+              }
+              getAddressFromLatLng(lat, lng);
             }}
             onLoad={onMapLoad}
           />

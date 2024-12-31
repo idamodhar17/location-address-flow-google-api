@@ -1,41 +1,57 @@
-import { useState } from "react";
-import Map from "./components/Map";
-import AddressForm from "./components/AddressForm";
+import { useState, useEffect } from "react";
+import Map from "./components/Map/Map";
+import AddressForm from "./components/AddressForm/AddressForm";
+import axios from "axios";
 
 function App() {
   const [selectedAddress, setSelectedAddress] = useState("");
-  const [savedAddressDetails, setSavedAddressDetails] = useState(null);
+  const [savedAddressDetails, setSavedAddressDetails] = useState([]);
+  const [allSavedAddresses, setAllSavedAddresses] = useState([]);
+
+  useEffect(() => {
+    fetchSavedAddresses();
+  }, []);
+
+  const fetchSavedAddresses = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/saved-addresses");
+      setAllSavedAddresses(response.data);
+    } catch (error) {
+      console.error("Error fetching saved addresses:", error);
+    }
+  };
 
   const handleSelectedAddress = (address) => {
-    console.log("Selected Address: ", address);
     setSelectedAddress(address);
   };
 
-  const handleSaveAddress = (details) => {
-    console.log("Saved Address Details: ", details);
-    setSavedAddressDetails({ ...details, address: selectedAddress });
+  const handleSaveAddress = async (details) => {
+    const addressToSave = { ...details, address: selectedAddress };
+    try {
+      await axios.post("http://localhost:5000/api/save-address", addressToSave);
+      setSavedAddressDetails(addressToSave);
+      fetchSavedAddresses();
+    } catch (error) {
+      console.error("Error saving address:", error);
+    }
   };
 
   return (
     <>
-      <h4>Location Selector</h4>
+      <center><h2>Location Selector</h2></center>
       <Map onAddressSelect={handleSelectedAddress} />
       <AddressForm onSave={handleSaveAddress} />
-      {selectedAddress && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Selected Address:</h3>
-          <p>{selectedAddress}</p>
-        </div>
-      )}
-      {savedAddressDetails && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Saved Address:</h3>
-          <p>Address: {savedAddressDetails.address}</p>
-          <p>House/Flat No.: {savedAddressDetails.houseNumber}</p>
-          <p>Apartment/Area: {savedAddressDetails.area}</p>
-          <p>Category: {savedAddressDetails.category}</p>
-        </div>
-      )}
+      <div style={{ marginTop: "20px" }}>
+        <h3>Saved Locations</h3>
+        {allSavedAddresses.map((addr, index) => (
+          <div key={index} style={{ marginBottom: "10px", padding: "10px", border: "1px solid #ccc" }}>
+            <h4>
+              {addr.category === "Home" ? "🏠 Home" : addr.category === "Office" ? "🏢 Office" : "👨‍👩‍👧 Friends & Family"}
+            </h4>
+            <p>{addr.address}</p>
+          </div>
+        ))}
+      </div>
     </>
   );
 }

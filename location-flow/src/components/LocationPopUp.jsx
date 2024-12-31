@@ -1,5 +1,5 @@
 import React from "react";
-import locationPin from "../assets/location-pin.png"
+import locationPin from "../assets/location-pin.png";
 
 const LocationPopup = ({ onEnableLocation, onManualEntry }) => {
   return (

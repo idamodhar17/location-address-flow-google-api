@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import axios from "axios";
 
+import LocationPopup from "./LocationPopUp";
+
 const containerStyle = {
   width: "100%",
   height: "400px",
@@ -18,6 +20,8 @@ const Map = () => {
   const [currentPosition, setCurrentPosition] = useState(defaultCenter);
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isPopupOpen, setIsPopupOpen] = useState(true);
+  const [isAddressSaved, setIsAddressSaved] = useState(false);
 
   useEffect(() => {
     if (currentPosition) {
@@ -25,13 +29,23 @@ const Map = () => {
     }
   }, [currentPosition]);
 
+  const handleEnableLocation = () => {
+    setIsPopupOpen(false);
+    getCurrentLocation();
+  };
+
+  const handleManualEntry = () => {
+    setIsPopupOpen(false);
+    console.log("Search Location Manually clicked");
+  };
+
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setCurrentPosition({ lat: latitude, lng: longitude });
           console.log("Current Location:", latitude, longitude);
+          getAddressFromLatLng(latitude, longitude);
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -58,6 +72,7 @@ const Map = () => {
           ? response.data.results[0].formatted_address
           : "Address not found";
       setAddress(formattedAddress);
+      // onAddressSelect(formattedAddress);
     } catch (error) {
       console.error("Error fetching address: ", error);
       setAddress("Error fetching address.");
@@ -74,20 +89,12 @@ const Map = () => {
 
   return (
     <div>
-      <button
-        onClick={getCurrentLocation}
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#007bff",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-          marginBottom: "10px",
-        }}
-      >
-        Locate Me
-      </button>
+      {isPopupOpen && (
+        <LocationPopup
+          onEnableLocation={handleEnableLocation}
+          onManualEntry={handleManualEntry}
+        />
+      )}
       <div style={{ overflow: "hidden", position: "relative", display: "block" }}>
         <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
           <GoogleMap

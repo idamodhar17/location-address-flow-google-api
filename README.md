@@ -21,26 +21,45 @@ Follow the steps below to get your development environment set up:
 2. **Navigate to the project directory**:
    cd location-flow
 
+## Installation
+
+Follow the steps below to get your development environment set up:
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yourusername/location-flow-app.git
+   ```
+
+2. **Navigate to the project directory**:
+   ```bash
+   cd location-flow-app
+   ```
+
 3. **Install dependencies**:
    - For the frontend:
+     ```bash
      cd location-flow
      npm install
-
+     ```
    - For the backend:
+     ```bash
      cd location-flow-backend
      npm install
+     ```
 
 4. **Set up Google Maps API**:
    - Go to [Google Cloud Console](https://console.cloud.google.com/).
-   - Enable the Google Maps JavaScript API and Geocoding API.
+   - Enable the **Google Maps JavaScript API** and **Geocoding API**.
    - Get your API key and set it in the appropriate configuration file.
 
 5. **Start the development servers**:
-   - Frontend (React):
+   - For the frontend (React):
+     ```bash
      cd location-flow
      npm run dev
-
-   - Backend (Node.js):
+     ```
+   - For the backend (Node.js):
+     ```bash
      cd location-flow-backend
      node index.js
      ```

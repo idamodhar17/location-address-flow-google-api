@@ -29,7 +29,7 @@ Follow the steps below to get your development environment set up:
    - For the backend:
      cd location-flow-backend
      npm install
-
+     
 4. **Set up Google Maps API**:
    - Go to [Google Cloud Console](https://console.cloud.google.com/).
    - Enable the Google Maps JavaScript API and Geocoding API.

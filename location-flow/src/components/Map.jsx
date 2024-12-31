@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import React, { useState, useEffect, useRef } from "react";
+import { GoogleMap } from "@react-google-maps/api";
 import axios from "axios";
-
+import Autocomplete from "react-google-autocomplete";
 import LocationPopup from "./LocationPopUp";
 
 const containerStyle = {
@@ -21,13 +21,25 @@ const Map = () => {
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(true);
-  const [isAddressSaved, setIsAddressSaved] = useState(false);
+  const [isApiLoaded, setIsApiLoaded] = useState(false);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
 
   useEffect(() => {
-    if (currentPosition) {
-      getAddressFromLatLng(currentPosition.lat, currentPosition.lng);
+    if (!isApiLoaded) {
+      loadGoogleMapsApi();
     }
-  }, [currentPosition]);
+  }, [isApiLoaded]);
+
+  const loadGoogleMapsApi = () => {
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.async = true;
+    script.onload = () => {
+      setIsApiLoaded(true);
+    };
+    document.head.appendChild(script);
+  };
 
   const handleEnableLocation = () => {
     setIsPopupOpen(false);
@@ -45,6 +57,7 @@ const Map = () => {
         (position) => {
           const { latitude, longitude } = position.coords;
           console.log("Current Location:", latitude, longitude);
+          setCurrentPosition({ lat: latitude, lng: longitude });
           getAddressFromLatLng(latitude, longitude);
         },
         (error) => {
@@ -72,7 +85,6 @@ const Map = () => {
           ? response.data.results[0].formatted_address
           : "Address not found";
       setAddress(formattedAddress);
-      // onAddressSelect(formattedAddress);
     } catch (error) {
       console.error("Error fetching address: ", error);
       setAddress("Error fetching address.");
@@ -81,10 +93,31 @@ const Map = () => {
     }
   };
 
-  const handleMarkerDragEnd = (event) => {
-    const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
+  const handlePlaceSelect = (place) => {
+    const location = place.geometry.location;
+    const lat = location.lat();
+    const lng = location.lng();
     setCurrentPosition({ lat, lng });
+  };
+
+  const handleMarkerDragEnd = () => {
+    const lat = markerRef.current.getPosition().lat();
+    const lng = markerRef.current.getPosition().lng();
+    setCurrentPosition({ lat, lng });
+    getAddressFromLatLng(lat, lng);
+  };
+
+  const onMapLoad = (map) => {
+    mapRef.current = map;
+    const marker = new google.maps.Marker({
+      position: currentPosition,
+      map: map,
+      draggable: true,
+    });
+
+    markerRef.current = marker;
+
+    google.maps.event.addListener(marker, "dragend", handleMarkerDragEnd);
   };
 
   return (
@@ -95,8 +128,22 @@ const Map = () => {
           onManualEntry={handleManualEntry}
         />
       )}
+      {isApiLoaded && (
+        <Autocomplete
+          apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+          onPlaceSelected={handlePlaceSelect}
+          types={["geocode"]}
+          placeholder="Search for an address"
+          style={{
+            width: "100%",
+            padding: "10px",
+            borderRadius: "5px",
+            border: "1px solid #ccc",
+          }}
+        />
+      )}
       <div style={{ overflow: "hidden", position: "relative", display: "block" }}>
-        <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+        {isApiLoaded && (
           <GoogleMap
             mapContainerStyle={containerStyle}
             center={currentPosition}
@@ -106,14 +153,9 @@ const Map = () => {
               const lng = event.latLng.lng();
               setCurrentPosition({ lat, lng });
             }}
-          >
-            <Marker
-              position={currentPosition}
-              draggable={true}
-              onDragEnd={handleMarkerDragEnd}
-            />
-          </GoogleMap>
-        </LoadScript>
+            onLoad={onMapLoad}
+          />
+        )}
       </div>
       <div style={{ marginTop: "10px" }}>
         <p>

@@ -1,19 +1,36 @@
-import { useState } from 'react'
-import Map from "./components/Map"
-import AddressForm from './components/AddressForm'
-
+import { useState } from "react";
+import Map from "./components/Map";
+import AddressForm from "./components/AddressForm";
+import LocationPopup from "./components/LocationPopUp";
 
 function App() {
   const [addressDetails, setAddressDetails] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(true);
 
   const handleSaveAddress = (details) => {
     console.log("Address Details: ", details);
     setAddressDetails(details);
   };
 
+  const handleEnableLocation = () => {
+    setIsPopupOpen(false);
+    console.log("Enable Location clicked");
+  };
+
+  const handleManualEntry = () => {
+    setIsPopupOpen(false);
+    console.log("Search Location Manually clicked");
+  };
+
   return (
     <>
       <h4>Location Selector</h4>
+      {isPopupOpen && (
+        <LocationPopup
+          onEnableLocation={handleEnableLocation}
+          onManualEntry={handleManualEntry}
+        />
+      )}
       <Map />
       <AddressForm onSave={handleSaveAddress} />
       {addressDetails && (
@@ -25,7 +42,7 @@ function App() {
         </div>
       )}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
